@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App.jsx';
@@ -130,5 +130,23 @@ describe('QuickTask task lifecycle', () => {
 
     expect(screen.getByText('No tasks yet. Add your first task!')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('0 tasks');
+  });
+
+  it('warns when browser storage cannot save tasks while keeping the task visible', async () => {
+    const user = userEvent.setup();
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Storage is full', 'QuotaExceededError');
+    });
+    render(<App />);
+    const input = screen.getByRole('textbox', { name: 'Enter a task' });
+
+    try {
+      await user.type(input, 'Finish the draft{Enter}');
+
+      expect(screen.getByText('Finish the draft')).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toHaveTextContent('could not save them');
+    } finally {
+      setItem.mockRestore();
+    }
   });
 });

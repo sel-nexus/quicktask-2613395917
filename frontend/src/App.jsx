@@ -74,13 +74,15 @@ TaskRow.propTypes = {
 function App() {
   const [tasks, setTasks] = useState(loadTasks);
   const [taskInput, setTaskInput] = useState('');
+  const [storageError, setStorageError] = useState(false);
   const completedCount = tasks.filter((task) => task.completed).length;
 
   useEffect(() => {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      setStorageError(false);
     } catch {
-      // Keep the in-memory task list usable when browser storage is unavailable.
+      setStorageError(true);
     }
   }, [tasks]);
 
@@ -154,6 +156,11 @@ function App() {
           <span className="summary-divider" aria-hidden="true">·</span>
           <span>{completedCount} completed</span>
         </div>
+        {storageError && (
+          <p className="storage-warning" role="alert">
+            Your tasks are available for now, but this browser could not save them.
+          </p>
+        )}
 
         {tasks.length === 0 ? (
           <p className="empty-state">No tasks yet. Add your first task!</p>

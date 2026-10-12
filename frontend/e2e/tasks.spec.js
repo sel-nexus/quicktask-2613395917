@@ -12,6 +12,9 @@ test('manages tasks through completion, deletion, and browser reload', async ({ 
   await expect(page.getByText('No tasks yet. Add your first task!')).toBeVisible();
 
   const input = page.getByRole('textbox', { name: 'Enter a task' });
+  await page.getByRole('button', { name: 'Add Task' }).click();
+  await expect(page.getByRole('status')).toContainText('0 tasks');
+  await expect(page.getByText('No tasks yet. Add your first task!')).toBeVisible();
   await input.fill('Prepare weekly plan');
   await input.press('Enter');
   await expect(page.getByText('Prepare weekly plan')).toBeVisible();
@@ -27,6 +30,13 @@ test('manages tasks through completion, deletion, and browser reload', async ({ 
   await page.getByRole('checkbox', { name: 'Mark Prepare weekly plan as complete' }).check();
   await expect(page.getByRole('listitem').nth(0)).toHaveClass(/task-row--completed/);
   await expect(page.getByRole('status')).toContainText('1 completed');
+  await page.screenshot({ path: 'test-results/quicktask-desktop.png', fullPage: true });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(input).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add Task' })).toBeVisible();
+  await expect(page.getByRole('listitem')).toHaveCount(2);
+  await page.screenshot({ path: 'test-results/quicktask-mobile.png', fullPage: true });
 
   await page.reload();
   await expect(page.getByText('Prepare weekly plan')).toBeVisible();
